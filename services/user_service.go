@@ -12,6 +12,7 @@ import (
 
 type UserService interface {
 	Register(req *dto.UserRegisterRequest) (*models.User, error)
+	Login(email, password string) (*models.User, error)
 }
 
 type userService struct {
@@ -46,4 +47,16 @@ func (s *userService) Register(req *dto.UserRegisterRequest) (*models.User, erro
 	}
 
 	return &user, nil
+}
+
+func (s *userService) Login(email, password string) (*models.User, error) {
+	user, err := s.repo.FindByEmail(email)
+	if err != nil {
+		return nil, errors.New("Invalid Credential")
+	}
+	if !utils.CheckPasswordHash(password, user.Password) {
+		return nil, errors.New("Invalid Credential")
+	}
+
+	return user, nil
 }
