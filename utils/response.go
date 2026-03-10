@@ -17,12 +17,39 @@ type Response struct {
 	Error        string      `json:"error,omitempty"`
 }
 
+type PaginatedResponse struct {
+	Status       string         `json:"status"`
+	ResponseCode int            `json:"response_code"`
+	Message      string         `json:"message,omitempty"`
+	Data         interface{}    `json:"data"`
+	Meta         PaginationMeta `json:"meta"`
+}
+
 func Success(c *fiber.Ctx, message string, data interface{}) error {
 	return c.Status(fiber.StatusOK).JSON(Response{
 		Status:       "Success",
 		ResponseCode: fiber.StatusOK,
 		Message:      message,
 		Data:         data,
+	})
+}
+
+func SuccessWithPagination(c *fiber.Ctx, message string, data interface{}, meta PaginationMeta) error {
+	return c.Status(fiber.StatusOK).JSON(PaginatedResponse{
+		Status:       "success",
+		ResponseCode: fiber.StatusOK,
+		Message:      message,
+		Data:         data,
+		Meta:         meta,
+	})
+}
+
+func NotFoundWithPagination(c *fiber.Ctx, message string, meta PaginationMeta) error {
+	return c.Status(fiber.StatusNotFound).JSON(PaginatedResponse{
+		Status:       "Not Found",
+		ResponseCode: fiber.StatusNotFound,
+		Message:      message,
+		Meta:         meta,
 	})
 }
 

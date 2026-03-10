@@ -13,6 +13,9 @@ import (
 type UserService interface {
 	Register(req *dto.UserRegisterRequest) (*models.User, error)
 	Login(email, password string) (*models.User, error)
+	GetByID(id uint) (*models.User, error)
+	GetByPublicID(publicID string) (*models.User, error)
+	GetAllUsersWithPagination(q utils.PaginationQuery) ([]models.User, int64, error)
 }
 
 type userService struct {
@@ -59,4 +62,16 @@ func (s *userService) Login(email, password string) (*models.User, error) {
 	}
 
 	return user, nil
+}
+
+func (s *userService) GetByID(id uint) (*models.User, error) {
+	return s.repo.FindByID(id)
+}
+
+func (s *userService) GetByPublicID(publicID string) (*models.User, error) {
+	return s.repo.FindByPublicID(publicID)
+}
+
+func (s *userService) GetAllUsersWithPagination(q utils.PaginationQuery) ([]models.User, int64, error) {
+	return s.repo.FindAllUsersWithPagination(q)
 }
