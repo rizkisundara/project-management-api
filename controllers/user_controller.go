@@ -1,8 +1,12 @@
 package controllers
 
 import (
+	"strconv"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"github.com/rizkisundara/project-management-api/models"
 	"github.com/rizkisundara/project-management-api/models/dto"
 	"github.com/rizkisundara/project-management-api/services"
 	"github.com/rizkisundara/project-management-api/utils"
@@ -90,4 +94,40 @@ func (c *UserController) GetAllUsersWithPagination(ctx *fiber.Ctx) error {
 	meta := utils.BuildPaginationMeta(query, total)
 
 	return utils.SuccessWithPagination(ctx, "Users retrieved successfully", responses, meta)
+}
+
+func (c *UserController) UpdateUser(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	publicID, err := uuid.Parse(id)
+	if err != nil {
+		return utils.BadRequest(ctx, "Invalid ID format", err.Error())
+	}
+
+	var user models.User
+	if err := ctx.BodyParser(&user); err != nil {
+		return utils.BadRequest(ctx, "Failed to parse request body", err.Error())
+	}
+
+	userExisting, err := c.services.GetByPublicID(publicID.String())
+	if err != nil {
+		return utils.NotFound(ctx, "User Not Found", err.Error())
+	}
+
+	userExisting.Name = user.Name
+
+	if err := c.services.Update(userExisting); err != nil {
+		return utils.InternalServerError(ctx, "Failed to update user", err.Error())
+	}
+
+	userResponse := dto.ToUserResponse(userExisting)
+	return utils.Success(ctx, "User updated successfully", userResponse)
+}
+
+func (c *UserController) DeleteUser(ctx *fiber.Ctx) error {
+	id, _ := strconv.Atoi(ctx.Params("id"))
+	if err := c.services.Delete(uint(id)); err != nil {
+		return utils.InternalServerError(ctx, "Failed to delete user", err.Error())
+	}
+
+	return utils.Success(ctx, "User deleted successfully", nil)
 }

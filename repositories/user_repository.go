@@ -12,6 +12,8 @@ type UserRepository interface {
 	FindByID(id uint) (*models.User, error)
 	FindByPublicID(publicID string) (*models.User, error)
 	FindAllUsersWithPagination(q utils.PaginationQuery) ([]models.User, int64, error)
+	Update(user *models.User) error
+	Delete(id uint) error
 }
 
 type userRepository struct {
@@ -76,4 +78,15 @@ func (r *userRepository) FindAllUsersWithPagination(q utils.PaginationQuery) ([]
 	}
 
 	return users, total, nil
+}
+
+func (r *userRepository) Update(user *models.User) error {
+	return config.DB.Model(&models.User{}).
+		Where("public_id = ?", user.PublicID).Updates(map[string]interface{}{
+		"name": user.Name,
+	}).Error
+}
+
+func (r *userRepository) Delete(id uint) error {
+	return config.DB.Delete(&models.User{}, id).Error
 }
